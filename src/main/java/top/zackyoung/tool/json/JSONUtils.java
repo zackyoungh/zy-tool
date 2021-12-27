@@ -9,6 +9,10 @@ import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.ToString;
+import lombok.extern.java.Log;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -23,7 +27,7 @@ import java.util.Set;
  * @date 2021/12/24
  */
 @SuppressWarnings("all")
-@Slf4j
+@Log4j2
 public class JSONUtils {
     /**
      * java常用普通类
