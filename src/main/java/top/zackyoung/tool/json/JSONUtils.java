@@ -9,10 +9,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.ToString;
-import lombok.extern.java.Log;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -20,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author ZackYoung
@@ -51,7 +50,7 @@ public class JSONUtils {
                     // 当对象为 list 时，再 toBeanList一下
                     if (field.getType().equals(List.class)) {
                         Class<?> cla = (Class<?>) TypeUtil.getTypeArgument(TypeUtil.getType(field));
-                        List<?> list = o1 == null ? new ArrayList<>() : toBeanList(cla,(JSONArray) o1);
+                        List<?> list = o1 == null ? new ArrayList<>() : toBeanList(cla, (JSONArray) o1);
                         field.set(t, list);
                     }
                     // 当为普通值时赋值
@@ -62,11 +61,11 @@ public class JSONUtils {
                     // 此刻应该为 bean 中bean的了
                     else {
                         Class<?> cla = (Class<?>) TypeUtil.getType(field);
-                        Object o = toBean(cla, o1 == null ? null :(JSONObject) o1);
+                        Object o = toBean(cla, o1 == null ? null : (JSONObject) o1);
                         field.set(t, o);
                     }
-                }catch (Exception e) {
-                    log.error("类 ：{}  字段：{}，解析错误，解析标签:{} ",clazz.getName(),field.getName(),name);
+                } catch (Exception e) {
+                    log.error("类 ：{}  字段：{}，解析错误，解析标签:{} ", clazz.getName(), field.getName(), name);
                 }
 
             }
@@ -74,19 +73,23 @@ public class JSONUtils {
         return t;
     }
 
-    public static <T> List<T> toBeanList(Class<T> clazz, JSONArray json) {
-        List<T> list = new ArrayList<>();
-        json.forEach(x -> {
-            JSONObject o = JSONObject.parseObject(JSONObject.toJSONString(x));
-            list.add(toBean(clazz, o));
-        });
+    public static <T> List<T> toBeanList(Class<T> clazz, JSONArray json, Function<JSONObject, Boolean> condition) {
+        List<T> list = json.stream().map(x -> JSONObject.parseObject(JSONObject.toJSONString(x)))
+                .filter(condition::apply)
+                .map(x -> toBean(clazz, x))
+                .collect(Collectors.toList());
         return list;
+    }
+
+    public static <T> List<T> toBeanList(Class<T> clazz, JSONArray json) {
+        return toBeanList(clazz, json, x -> true);
     }
 
     /**
      * 通过递归解析字段：如  common.user.name  只会解析到user时的对象
+     *
      * @param length 长度，一般为0
-     * @param json json对象
+     * @param json   json对象
      * @param fields 需要解析的字段集
      * @return json
      */
@@ -109,6 +112,7 @@ public class JSONUtils {
         JSONObject jsonObject = JSONObject.parseObject(
                 "{\"user\":{\"name\":\"张三\",\"x\":{\"y\":[{\"name\":\"李四\"}],\"z\":{\"name\":\"王五\"}}}}"
         );
+
         User user = toBean(User.class, jsonObject.getJSONObject("user"));
         System.out.println(user);
     }
