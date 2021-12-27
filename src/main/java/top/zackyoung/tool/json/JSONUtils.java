@@ -23,6 +23,7 @@ import java.util.Set;
  * @date 2021/12/24
  */
 @SuppressWarnings("all")
+@Slf4j
 public class JSONUtils {
     /**
      * java常用普通类
@@ -39,27 +40,31 @@ public class JSONUtils {
                 // 映射字段
                 field.setAccessible(true);
                 String name = annotation.name();
-                String[] split = name.split("\\.");
                 // 解析
                 BeanPath resolver = new BeanPath(name);
                 Object o1 = resolver.get(json);
-                // 当对象为 list 时，再 toBeanList一下
-                if (field.getType().equals(List.class)) {
-                    Class<?> cla = (Class<?>) TypeUtil.getTypeArgument(TypeUtil.getType(field));
-                    List<?> list = o1 == null ? new ArrayList<>() : toBeanList(cla, ((JSONObject)o1).getJSONArray(split[split.length - 1]));
-                    field.set(t, list);
-                }
-                // 当为普通值时赋值
-                else if (clazzSet.contains(field.getType())) {
+                try {
+                    // 当对象为 list 时，再 toBeanList一下
+                    if (field.getType().equals(List.class)) {
+                        Class<?> cla = (Class<?>) TypeUtil.getTypeArgument(TypeUtil.getType(field));
+                        List<?> list = o1 == null ? new ArrayList<>() : toBeanList(cla,(JSONArray) o1);
+                        field.set(t, list);
+                    }
+                    // 当为普通值时赋值
+                    else if (clazzSet.contains(field.getType())) {
 //                    Object invoke =o1==null?null: ReflectUtil.invoke(o1, "get" + field.getType().getSimpleName(), split[split.length - 1]);
-                    field.set(t, o1);
+                        field.set(t, o1);
+                    }
+                    // 此刻应该为 bean 中bean的了
+                    else {
+                        Class<?> cla = (Class<?>) TypeUtil.getType(field);
+                        Object o = toBean(cla, o1 == null ? null :(JSONObject) o1);
+                        field.set(t, o);
+                    }
+                }catch (Exception e) {
+                    log.error("类 ：{}  字段：{}，解析错误，解析标签:{} ",clazz.getName(),field.getName(),name);
                 }
-                // 此刻应该为 bean 中bean的了
-                else {
-                    Class<?> cla = (Class<?>) TypeUtil.getType(field);
-                    Object o = toBean(cla, o1 == null ? null :((JSONObject) o1).getJSONObject(split[split.length - 1]));
-                    field.set(t, o);
-                }
+
             }
         }
         return t;
