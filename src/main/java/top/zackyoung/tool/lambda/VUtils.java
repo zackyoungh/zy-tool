@@ -3,6 +3,9 @@ package top.zackyoung.tool.lambda;
 import cn.hutool.core.lang.Singleton;
 import top.zackyoung.tool.lambda.interfaces.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author ZackYoung
  * @version 1.0
@@ -11,6 +14,7 @@ import top.zackyoung.tool.lambda.interfaces.*;
 @SuppressWarnings("all")
 public class VUtils {
     public static VUtils getInstance = Singleton.get(VUtils.class);
+
     /**
      * 如果参数为true抛出异常
      *
@@ -68,13 +72,66 @@ public class VUtils {
         return (consumer, runnable) -> isTrueOrFalse(str == null || str.length() == 0).trueOrFalseHandle(runnable, () -> consumer.accept(str));
     }
 
-
-    public ConditionHandler cd(boolean b) {
+    /**
+     * 条件为true即运行
+     */
+    public static ConditionHandler2 cd(boolean b) {
         return (runnable) -> {
             if (b) {
                 runnable.run();
             }
-            return Singleton.get(VUtils.class);
+            return getInstance;
         };
     }
+
+    /**
+     * if else
+     */
+    public static class ifElseBuilder {
+        /**
+         * 执行标记
+         */
+        boolean excFlag = false;
+        static List<Boolean> list = new ArrayList<>();
+        static List<Runnable> runnables = new ArrayList<>();
+        static Runnable elseRunable;
+
+        public ifElseBuilder() {
+        }
+
+
+        public ConditionHandler cd(boolean b) {
+            list.add(b);
+            return (runnable) -> {
+                runnables.add(runnable);
+                return this;
+            };
+        }
+
+        //
+        public ifElseBuilder elseHandler(Runnable runnable) {
+            elseRunable = runnable;
+            return this;
+        }
+
+        public void exec() {
+            for (int i = 0; i < list.size(); i++) {
+                if (list.get(i)) {
+                    runnables.get(i).run();
+                    return;
+                }
+            }
+            elseRunable.run();
+        }
+    }
+
+
+//    public ConditionHandler cd(boolean b) {
+//        return (runnable) -> {
+//            if (b) {
+//                runnable.run();
+//            }
+//            return Singleton.get(VUtils.class);
+//        };
+//    }
 }

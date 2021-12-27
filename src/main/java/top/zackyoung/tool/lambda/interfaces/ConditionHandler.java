@@ -10,5 +10,5 @@ import top.zackyoung.tool.lambda.VUtils;
  */
 @FunctionalInterface
 public interface ConditionHandler {
-    VUtils handler(Runnable runnable);
+    VUtils.ifElseBuilder handler(Runnable runnable);
 }
