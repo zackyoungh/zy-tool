@@ -1,7 +1,7 @@
 package top.zackyoung.tool.json;
 
+import cn.hutool.core.bean.BeanPath;
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * @author ZackYoung
  * @version 1.0
- * @date 2021/12/26
+ * @date 2021/12/24
  */
 @SuppressWarnings("all")
 public class JSONUtils {
@@ -40,22 +40,24 @@ public class JSONUtils {
                 field.setAccessible(true);
                 String name = annotation.name();
                 String[] split = name.split("\\.");
-                JSONObject j1 = parseFiled(0, json, split);
+                // 解析
+                BeanPath resolver = new BeanPath(name);
+                Object o1 = resolver.get(json);
                 // 当对象为 list 时，再 toBeanList一下
                 if (field.getType().equals(List.class)) {
                     Class<?> cla = (Class<?>) TypeUtil.getTypeArgument(TypeUtil.getType(field));
-                    List<?> list = j1 == null ? new ArrayList<>() : toBeanList(cla, j1.getJSONArray(split[split.length - 1]));
+                    List<?> list = o1 == null ? new ArrayList<>() : toBeanList(cla, ((JSONObject)o1).getJSONArray(split[split.length - 1]));
                     field.set(t, list);
                 }
                 // 当为普通值时赋值
                 else if (clazzSet.contains(field.getType())) {
-                    Object invoke =j1==null?null: ReflectUtil.invoke(j1, "get" + field.getType().getSimpleName(), split[split.length - 1]);
-                    field.set(t, invoke);
+//                    Object invoke =o1==null?null: ReflectUtil.invoke(o1, "get" + field.getType().getSimpleName(), split[split.length - 1]);
+                    field.set(t, o1);
                 }
                 // 此刻应该为 bean 中bean的了
                 else {
                     Class<?> cla = (Class<?>) TypeUtil.getType(field);
-                    Object o = toBean(cla, j1 == null ? null : j1.getJSONObject(split[split.length - 1]));
+                    Object o = toBean(cla, o1 == null ? null :((JSONObject) o1).getJSONObject(split[split.length - 1]));
                     field.set(t, o);
                 }
             }
