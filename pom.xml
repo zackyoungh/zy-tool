@@ -6,11 +6,11 @@
 
     <groupId>top.zackyoung</groupId>
     <artifactId>zy-tool</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+<!--        <maven.compiler.source>17</maven.compiler.source>-->
+<!--        <maven.compiler.target>17</maven.compiler.target>-->
         <github.global.server>github</github.global.server>
     </properties>
 

@@ -73,6 +73,14 @@ public class JSONUtils {
         return t;
     }
 
+    /**
+     * jsonArray转实体，可指定过滤值
+     * @param clazz 实体类
+     * @param json json
+     * @param condition 体哦阿健
+     * @param <T> 泛型
+     * @return list的实体
+     */
     public static <T> List<T> toBeanList(Class<T> clazz, JSONArray json, Function<JSONObject, Boolean> condition) {
         List<T> list = json.stream().map(x -> JSONObject.parseObject(JSONObject.toJSONString(x)))
                 .filter(condition::apply)
@@ -81,6 +89,13 @@ public class JSONUtils {
         return list;
     }
 
+    /**
+     * jsonArray转实体
+     * @param clazz 实体类
+     * @param json json
+     * @param <T> 泛型
+     * @return list的实体
+     */
     public static <T> List<T> toBeanList(Class<T> clazz, JSONArray json) {
         return toBeanList(clazz, json, x -> true);
     }
