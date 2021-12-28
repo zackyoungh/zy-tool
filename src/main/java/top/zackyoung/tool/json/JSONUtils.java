@@ -2,6 +2,8 @@ package top.zackyoung.tool.json;
 
 import cn.hutool.core.bean.BeanPath;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -43,10 +45,22 @@ public class JSONUtils {
                 // 映射字段
                 field.setAccessible(true);
                 String name = annotation.name();
+                if (StrUtil.isBlank(name)) {
+                    continue;
+                }
                 // 解析
-                BeanPath resolver = new BeanPath(name);
+                List<String> split = StrUtil.split(name, ":");
+                BeanPath resolver = new BeanPath(split.get(0));
                 Object o1 = resolver.get(json);
                 try {
+                    // 设置默认值
+                    if ((o1 == null || (o1 instanceof List && ((List)o1).get(0)==null) ) && split.size() == 2) {
+                        try {
+                            o1 = Convert.convert(field.getType(), split.get(1));
+                        } catch (Exception e) {
+                            log.error("转换类型错误：表达式：{}", name,e);
+                        }
+                    }
                     // 当对象为 list 时，再 toBeanList一下
                     if (field.getType().equals(List.class)) {
                         Class<?> cla = (Class<?>) TypeUtil.getTypeArgument(TypeUtil.getType(field));
@@ -55,7 +69,6 @@ public class JSONUtils {
                     }
                     // 当为普通值时赋值
                     else if (clazzSet.contains(field.getType())) {
-//                    Object invoke =o1==null?null: ReflectUtil.invoke(o1, "get" + field.getType().getSimpleName(), split[split.length - 1]);
                         field.set(t, o1);
                     }
                     // 此刻应该为 bean 中bean的了
@@ -65,7 +78,7 @@ public class JSONUtils {
                         field.set(t, o);
                     }
                 } catch (Exception e) {
-                    log.error("类 ：{}  字段：{}，解析错误，解析标签:{} ", clazz.getName(), field.getName(), name);
+                    log.error("类 ：{}  字段：{}，解析错误，解析标签:{} ", clazz.getName(), field.getName(), name,e);
                 }
 
             }
@@ -75,10 +88,11 @@ public class JSONUtils {
 
     /**
      * jsonArray转实体，可指定过滤值
-     * @param clazz 实体类
-     * @param json json
+     *
+     * @param clazz     实体类
+     * @param json      json
      * @param condition 体哦阿健
-     * @param <T> 泛型
+     * @param <T>       泛型
      * @return list的实体
      */
     public static <T> List<T> toBeanList(Class<T> clazz, JSONArray json, Function<JSONObject, Boolean> condition) {
@@ -91,9 +105,10 @@ public class JSONUtils {
 
     /**
      * jsonArray转实体
+     *
      * @param clazz 实体类
-     * @param json json
-     * @param <T> 泛型
+     * @param json  json
+     * @param <T>   泛型
      * @return list的实体
      */
     public static <T> List<T> toBeanList(Class<T> clazz, JSONArray json) {
@@ -141,7 +156,7 @@ class User {
     @JSONField(name = "x.y")
     List<X> list;
 
-    @JSONField(name = "x.y.name")
+    @JSONField(name = "x.y.name.m:qw")
     String x;
 
     @JSONField(name = "x.z")
