@@ -1,5 +1,6 @@
 package top.zackyoung;
 
+import cn.hutool.core.util.StrUtil;
 import org.junit.jupiter.api.Test;
 import top.zackyoung.tool.lambda.VUtils;
 
@@ -29,5 +30,6 @@ public class ToolTests {
         }).elseHandler(()->{
             System.out.println(4);
         }).exec();
+        System.out.println(StrUtil.subSuf("f", 1));
     }
 }

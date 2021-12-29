@@ -30,7 +30,7 @@ public class VUtils {
     }
 
     /**
-     * 参数为true或false时，分别进行不同的参数
+     * 参数为true或false时，分别进行不同的步骤
      *
      * @param b 条件逻辑
      * @return lambda
@@ -41,6 +41,16 @@ public class VUtils {
                 trueHandle.run();
             } else {
                 falseHandle.run();
+            }
+        };
+    }
+
+    public static<T> BranchHandleReturn<T> isTrueOrFalseReturn(boolean b) {
+        return (trueHandle, falseHandle) -> {
+            if (b) {
+                return trueHandle.get();
+            } else {
+                return falseHandle.get();
             }
         };
     }
